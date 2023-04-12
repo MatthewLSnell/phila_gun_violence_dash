@@ -1,0 +1,30 @@
+import pandas as pd
+import numpy as np
+
+def start_pipeline(dataf):
+    """Starts the data pipeline"""
+    return dataf.copy()
+
+def convert_to_datetime(dataf):
+    """Formats the date column"""
+    dataf['date_'] = pd.to_datetime(dataf['date_'])
+    dataf['date_'] = dataf['date_'].apply(lambda t: t.replace(tzinfo=None))
+    dataf['date_'] = dataf['date_'].astype('datetime64[ns]')
+    return dataf
+
+def add_time_series_features(dataf):
+    """Format the date column and add features to the dataset"""
+    dataf['weekday'] = dataf['date_'].dt.weekday
+    dataf['week_no'] = dataf['date_'].dt.isocalendar().week
+    dataf['month'] = dataf['date_'].dt.month
+    dataf['day_name'] = dataf['date_'].dt.day_name()
+    dataf['day'] = dataf['date_'].dt.day
+    return dataf
+
+def add_features(dataf):
+    """Adds features to the dataset"""
+    dataf['victim_outcome'] = np.where(dataf['fatal'] == 1, 'Fatal', 'Non-fatal')
+    dataf['non_fatal'] = np.where(dataf['fatal'] == 0, 1, 0)
+    dataf['shooting_incidents'] = np.where(dataf['objectid'] > 0, 1, 0)
+    return dataf
+    
