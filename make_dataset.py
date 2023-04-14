@@ -17,6 +17,7 @@ def add_time_series_features(dataf):
     dataf['weekday'] = dataf['date_'].dt.weekday
     dataf['week_no'] = dataf['date_'].dt.isocalendar().week
     dataf['month'] = dataf['date_'].dt.month
+    dataf['month_name'] = dataf['date_'].dt.month_name()
     dataf['day_name'] = dataf['date_'].dt.day_name()
     dataf['day'] = dataf['date_'].dt.day
     return dataf
