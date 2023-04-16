@@ -72,6 +72,7 @@ body = dbc.Container(
         ),
         dbc.Row(
             [
+                dbc.Col(
                 html.Div(
                     [
                         html.Div(children="Year", className="menu-title"),
@@ -80,10 +81,16 @@ body = dbc.Container(
                             options=[{"label": i, "value": i} for i in years] + [{"label": "All Years", "value": "All"}],
                             value='All Years',
                             clearable=False,
-                            # className="dropdown",
+                            className="menu_dropdown",
                         ),
                     ]
                 ),
+                xs=2,
+                sm=2,
+                md=2, 
+                lg=3,
+                xl=3),
+                dbc.Col(
                 html.Div(
                     [
                         html.Div(children="Police District", className="menu-title"),
@@ -92,13 +99,19 @@ body = dbc.Container(
                             options=[{"label": i, "value": i} for i in districts] + [{"label": "All Districts", "value": "All"}],
                             value='All Police Districts',
                             clearable=False,
-                            className="dropdown",  
+                            className="menu_dropdown", 
                         ),    
                     ]
                 ),
+                xs=2,
+                sm=2,
+                md=2, 
+                lg=3,
+                xl=3),
             ], 
             class_name="menu",
-        ),
+            justify="space-between",
+        ), 
         dbc.Row(
             [
                 dbc.Col(

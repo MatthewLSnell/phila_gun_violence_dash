@@ -65,8 +65,10 @@ body {
     /* height: 112px;
     width: 1500px; */
     display: flex;
+    width: 800px;
     justify-content: space-evenly;
     padding-top: 24px;
+    padding-bottom: 24px;
     margin: -80px auto 0 auto;
     background-color: #FFFFFF;
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
@@ -79,4 +81,11 @@ body {
     font-weight: bold;
     color: #079A82;
 
+}
+
+.menu_dropdown {
+
+    position: relative;
+    display: inline-block;
+    width: 200px;
 }
