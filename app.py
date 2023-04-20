@@ -28,12 +28,14 @@ data = (
 )
 
 shootings_per_year = (data
-                      .groupby(['year', 'month', 'month_name', 'victim_outcome']).agg(
+                      .groupby(['year', 'victim_outcome']).agg(
                           shootings=('objectid', 'count'),
                       )
                       .reset_index()
-                      .sort_values(by=['year', 'month'])
+                      .sort_values(by=['year'])
                       )
+
+shootings_per_year_fig = px.bar(shootings_per_year, x="year", y="shootings", color="victim_outcome", title="Shootings Per Year")
 
 shootings_per_month = (data
                     .groupby(['month', 'month_name', 'victim_outcome']).agg(
@@ -115,25 +117,14 @@ body = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [html.Div(children=dcc.Graph(
-                        id="non_fatal_shootings_chart",
+                    [
+                        html.Div(
+                            children=dcc.Graph(
+                        id="shootings_per_year_bar_chart",
                         config={"displayModeBar": False},
-                        figure={
-                            "data": [{
-                                "x": data["year"],
-                                "y": data["non_fatal"],
-                                "type": "bar",
-                                "hovertemplate": "Non-fatal shootings: %{y}<extra></extra>",
-                            }],
-                            "layout": {
-                                "title": "Non-fatal shootings",
-                                "x": 0.05,
-                                "xanchor": "left",
-                            },
-                            "xaxis": {"fixedrange": True},
-                            "yaxis": {"fixedrange": True},
-                            "colorway": ["#17B897"],
-                            }))],
+                        figure=shootings_per_year_fig
+                        ))
+                    ],
                     class_name="card",
                     xs=12,
                     sm=12,
