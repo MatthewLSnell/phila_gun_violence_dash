@@ -71,8 +71,10 @@ body = dbc.Container(
                 ]
             ),
             class_name="header",
+            justify="center",
         ),
         dbc.Row(
+            dbc.Col(
             [
                 dbc.Col(
                 html.Div(
@@ -112,35 +114,53 @@ body = dbc.Container(
                 xl=3),
             ], 
             class_name="menu",
-            justify="space-between",
+            # justify="space-between",
+            xs=12,
+            sm=12,
+            md=6,
+            lg=6, 
+            xl=6,
+            ),
         ), 
         dbc.Row(
             [
                 dbc.Col(
                     [
                         html.Div(
-                            children=dcc.Graph(
+                        children=dcc.Graph(
                         id="shootings_per_year_bar_chart",
                         config={"displayModeBar": False},
-                        figure=shootings_per_year_fig
-                        ))
+                        figure=shootings_per_year_fig,
+                        className="card",
+                        ),
+                        className="wrapper",
+                        )
                     ],
-                    class_name="card",
-                    xs=12,
-                    sm=12,
-                    md=12,
-                    lg=6,
-                    xl=5,
-                    align="center",
+                    # xs=12,
+                    # sm=12,
+                    # md=12,
+                    # lg=6,
+                    # xl=6,
+                    # align="center",
                 ),
                 dbc.Col(
-                    [html.Div("One of two columns")],
-                    class_name="card",
-                    xs=12,
-                    sm=12,
-                    md=12,
-                    lg=6,
-                    xl=5,
+                    [
+                        html.Div(
+                            children=dcc.Graph(
+                                id="shootings_per_year_bar_chart",
+                                config={"displayModeBar": False},
+                                figure=shootings_per_year_fig,
+                                className="card",
+                            ),
+                            className="wrapper",
+                        )    
+                    ],
+                    # xs=12,
+                    # sm=12,
+                    # md=12,
+                    # lg=6,
+                    # xl=6,
+                    align="center",
                 ),
             ],
             justify="center",
