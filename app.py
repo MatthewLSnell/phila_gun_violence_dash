@@ -45,6 +45,7 @@ shootings_per_month = (data
                     .sort_values(by=['month'])
                     )
 
+shootings_per_month_fig = px.bar(shootings_per_month, x='month_name', y='shootings', color='victim_outcome')
 
 years = data["year"].sort_values().unique().tolist()
 districts = data["dist"].sort_values().unique().tolist()
@@ -136,31 +137,31 @@ body = dbc.Container(
                         className="wrapper",
                         )
                     ],
-                    # xs=12,
-                    # sm=12,
-                    # md=12,
-                    # lg=6,
-                    # xl=6,
+                    xs=12,
+                    sm=12,
+                    md=12,
+                    lg=6,
+                    xl=6,
                     # align="center",
                 ),
                 dbc.Col(
                     [
                         html.Div(
                             children=dcc.Graph(
-                                id="shootings_per_year_bar_chart",
+                                id="shootings_per_month_bar_chart",
                                 config={"displayModeBar": False},
-                                figure=shootings_per_year_fig,
+                                figure=shootings_per_month_fig,
                                 className="card",
                             ),
                             className="wrapper",
                         )    
                     ],
-                    # xs=12,
-                    # sm=12,
-                    # md=12,
-                    # lg=6,
-                    # xl=6,
-                    align="center",
+                    xs=12,
+                    sm=12,
+                    md=12,
+                    lg=6,
+                    xl=6,
+                    # align="center",
                 ),
             ],
             justify="center",
@@ -174,7 +175,7 @@ body = dbc.Container(
                     sm=12,
                     md=12,
                     lg=6,
-                    xl=5,
+                    xl=6,
                 ),
                 dbc.Col(
                     [html.Div("One of two columns")],
@@ -183,7 +184,7 @@ body = dbc.Container(
                     sm=12,
                     md=12,
                     lg=6,
-                    xl=5,
+                    xl=6,
                 ),
             ],
             justify="center",
