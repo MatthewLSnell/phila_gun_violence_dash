@@ -27,26 +27,6 @@ data = (
     .pipe(fill_missing_values)
 )
 
-shootings_per_year = (data
-                      .groupby(['year', 'victim_outcome']).agg(
-                          shootings=('objectid', 'count'),
-                      )
-                      .reset_index()
-                      .sort_values(by=['year'])
-                      )
-
-shootings_per_year_fig = px.bar(shootings_per_year, x="year", y="shootings", color="victim_outcome", title="Shootings Per Year")
-
-shootings_per_month = (data
-                    .groupby(['month', 'month_name', 'victim_outcome']).agg(
-                        shootings=('objectid', 'count')
-                    )
-                    .reset_index()
-                    .sort_values(by=['month'])
-                    )
-
-shootings_per_month_fig = px.bar(shootings_per_month, x='month_name', y='shootings', color='victim_outcome')
-
 years = data["year"].sort_values().unique().tolist()
 districts = data["dist"].sort_values().unique().tolist()
 
@@ -83,7 +63,10 @@ body = dbc.Container(
                         html.Div(children="Year", className="menu-title"),
                         dcc.Dropdown(
                             id="year_filter",
-                            options=[{"label": i, "value": i} for i in years] + [{"label": "All Years", "value": "All"}],
+                            # options=[{"label": i, "value": i} for i in years] + [{"label": "All Years", "value": "All"}],\
+                            options=[
+                                'All Years', 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023
+                            ],
                             value='All Years',
                             clearable=False,
                             className="menu_dropdown",
@@ -101,8 +84,8 @@ body = dbc.Container(
                         html.Div(children="Police District", className="menu-title"),
                         dcc.Dropdown(
                             id="police_district_filter",
-                            options=[{"label": i, "value": i} for i in districts] + [{"label": "All Districts", "value": "All"}],
-                            value='All Police Districts',
+                            options=[{"label": i, "value": i} for i in districts] + [{"label": "All Districts", "value": "All Districts"}],
+                            value='All Districts',
                             clearable=False,
                             className="menu_dropdown", 
                         ),    
@@ -131,7 +114,6 @@ body = dbc.Container(
                         children=dcc.Graph(
                         id="shootings_per_year_bar_chart",
                         config={"displayModeBar": False},
-                        figure=shootings_per_year_fig,
                         className="card",
                         ),
                         className="wrapper",
@@ -150,7 +132,6 @@ body = dbc.Container(
                             children=dcc.Graph(
                                 id="shootings_per_month_bar_chart",
                                 config={"displayModeBar": False},
-                                figure=shootings_per_month_fig,
                                 className="card",
                             ),
                             className="wrapper",
@@ -219,6 +200,152 @@ body = dbc.Container(
 
 app.layout = dbc.Container(body, fluid=True)
 
+@app.callback(
+    Output("shootings_per_year_bar_chart", "figure"),
+    Output("shootings_per_month_bar_chart", "figure"),
+    Input("year_filter", "value"),
+    Input("police_district_filter", "value")
+)
+
+# create function to update graphs based on year and police district
+def update_charts(year_filter, police_district_filter):
+    if year_filter == 'All Years' and police_district_filter == 'All Districts':
+        year_filtered_data = (data
+                              .groupby(['year', 'victim_outcome']).agg(
+                                  shootings=('objectid', 'count'),
+                              )
+                              .reset_index()
+                              .sort_values(by=['year'])
+                              )
+        
+        month_filtered_data = (data
+                               .groupby(['month', 'month_name', 'victim_outcome']).agg(
+                                   shootings=('objectid', 'count')
+                               )
+                               .reset_index()
+                               .sort_values(by=['month'])
+                               )
+    elif year_filter == 'All Years':
+        year_filtered_data = (data
+                              .query("dist == @police_district_filter")
+                              .groupby(['year', 'victim_outcome']).agg(
+                                  shootings=('objectid', 'count'),
+                              )
+                              .reset_index()
+                              .sort_values(by=['year'])
+        )
+        
+        month_filtered_data = (data
+                               .query("dist == @police_district_filter")
+                               .groupby(['month', 'month_name', 'victim_outcome']).agg(
+                                   shootings=('objectid', 'count')
+                               )
+                               .reset_index()
+                               .sort_values(by=['month'])
+        )
+    elif police_district_filter == 'All Districts':
+        year_filtered_data = (data
+                              .query("year == @year_filter")
+                              .groupby(['year', 'victim_outcome']).agg(
+                                  shootings=('objectid', 'count'),
+                              )
+                              .reset_index()
+                              .sort_values(by=['year'])
+        )
+        
+        month_filtered_data = (data
+                               .query("year == @year_filter")
+                               .groupby(['month', 'month_name', 'victim_outcome']).agg(
+                                   shootings=('objectid', 'count')
+                               )
+                               .reset_index()
+                               .sort_values(by=['month'])
+        )
+    else:
+        year_filtered_data = (data
+                              .query("year == @year_filter & dist == @police_district_filter")
+                              .groupby(['year', 'victim_outcome']).agg(
+                                  shootings=('objectid', 'count'),
+                              )
+                              .reset_index()
+                              .sort_values(by=['year'])
+        )
+        
+        month_filtered_data = (data
+                               .query("year == @year_filter & dist == @police_district_filter")
+                               .groupby(['month', 'month_name', 'victim_outcome']).agg(
+                                   shootings=('objectid', 'count')
+                               )
+                               .reset_index()
+                               .sort_values(by=['month'])
+        )
+
+    shootings_per_year_bar_chart = px.bar(
+        year_filtered_data,
+        x="year",
+        y="shootings",
+        color="victim_outcome",
+        text_auto=True,
+        title="Shootings Per Year",
+        labels={'victim_outcome': 'Victim Outcome'}
+    )
+    
+    shootings_per_year_bar_chart.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+        'yaxis_title': None,
+        'xaxis_title': None,
+        'xaxis': dict(
+        ),
+        'yaxis': dict(
+            fixedrange=True,
+            showticklabels = False
+        ),
+        'legend': dict(
+            yanchor="bottom",
+            xanchor="center",
+            x = 0.5,
+            y = -0.25,
+            itemsizing="constant",
+            orientation = 'h'
+        )
+        })
+    shootings_per_year_bar_chart.update_traces(texttemplate='%{y:,}')
+    
+    shootings_per_month_bar_chart = px.bar(
+        month_filtered_data,
+        x="month_name",
+        y="shootings",
+        color="victim_outcome",
+        text_auto=True,
+        title=f"Shootings Per Month",
+        labels={'victim_outcome': 'Victim Outcome'}
+    )
+    
+    shootings_per_month_bar_chart.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+        'yaxis_title': None,
+        'xaxis_title': None,
+        'xaxis': dict(
+        ),
+        'yaxis': dict(
+            fixedrange=True,
+            showticklabels = False
+        ),
+        'legend': dict(
+            yanchor="bottom",
+            xanchor="center",
+            x = 0.5,
+            y = -0.25,
+            itemsizing="constant",
+            orientation = 'h'
+        )
+        })
+    shootings_per_month_bar_chart.update_traces(texttemplate='%{y:,}')
+    
+    return shootings_per_year_bar_chart, shootings_per_month_bar_chart
+    
 
 if __name__ == "__main__":
     app.run_server(debug=True)
