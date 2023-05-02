@@ -2,7 +2,9 @@ import dash
 from dash import Dash, Input, Output, dcc, html
 import dash_bootstrap_components as dbc
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 
 # import plotly.io as pio
 from make_dataset import (
@@ -150,8 +152,16 @@ body = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [html.Div("One of two columns")],
-                    class_name="card",
+                    [
+                        html.Div(
+                            children=dcc.Graph(
+                                id="shootings_heatmap",
+                                config={"displayModeBar": False},
+                                className="card",
+                            ),
+                            className="wrapper",
+                        )
+                    ],
                     xs=12,
                     sm=12,
                     md=12,
@@ -203,6 +213,7 @@ app.layout = dbc.Container(body, fluid=True)
 @app.callback(
     Output("shootings_per_year_bar_chart", "figure"),
     Output("shootings_per_month_bar_chart", "figure"),
+    Output("shootings_heatmap", "figure"),
     Input("year_filter", "value"),
     Input("police_district_filter", "value")
 )
@@ -225,6 +236,11 @@ def update_charts(year_filter, police_district_filter):
                                .reset_index()
                                .sort_values(by=['month'])
                                )
+        
+        heatmap_filtered_data = data.loc[:, ['month', 'day', 'shooting_incidents']]
+        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_numpy = heatmap_data.to_numpy()
+        
     elif year_filter == 'All Years':
         year_filtered_data = (data
                               .query("dist == @police_district_filter")
@@ -243,6 +259,13 @@ def update_charts(year_filter, police_district_filter):
                                .reset_index()
                                .sort_values(by=['month'])
         )
+        
+        heatmap_filtered_data = (data
+                                 .query("dist == @police_district_filter")
+                                 .loc[:, ['month', 'day', 'shooting_incidents']]
+        )
+        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_numpy = heatmap_data.to_numpy()
     elif police_district_filter == 'All Districts':
         year_filtered_data = (data
                               .query("year == @year_filter")
@@ -261,6 +284,13 @@ def update_charts(year_filter, police_district_filter):
                                .reset_index()
                                .sort_values(by=['month'])
         )
+        
+        heatmap_filtered_data = (data
+                                 .query("year == @year_filter")
+                                 .loc[:, ['month', 'day', 'shooting_incidents']]
+        )
+        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_numpy = heatmap_data.to_numpy()
     else:
         year_filtered_data = (data
                               .query("year == @year_filter & dist == @police_district_filter")
@@ -279,6 +309,13 @@ def update_charts(year_filter, police_district_filter):
                                .reset_index()
                                .sort_values(by=['month'])
         )
+        
+        heatmap_filtered_data = (data
+                                 .query("year == @year_filter & dist == @police_district_filter")
+                                 .loc[:, ['month', 'day', 'shooting_incidents']]
+        )
+        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_numpy = heatmap_data.to_numpy()
 
     shootings_per_year_bar_chart = px.bar(
         year_filtered_data,
@@ -344,7 +381,73 @@ def update_charts(year_filter, police_district_filter):
         })
     shootings_per_month_bar_chart.update_traces(texttemplate='%{y:,}')
     
-    return shootings_per_year_bar_chart, shootings_per_month_bar_chart
+    heatmap = go.Figure(go.Heatmap(
+    x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
+    xgap=1, ygap=1,
+    colorscale=[[0.0, '#2166ac'],
+                [0.5, "#4393c3"],
+                [0.61, "#92c5de"],
+                [0.71, "#d1e5f0"],
+                [0.81, "#f7f7f7"],
+                [0.85, "#fddbc7"],
+                [0.91, "#f4a582"],
+                [0.95, "#d6604d"],
+                [1.0, "#b2182b"]],
+))
+    heatmap.update_yaxes(
+    autorange="reversed",
+    tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
+    ticktext=['Jan. ', 'Feb. ', 'March ', 'April ', 'May ', 'June ',
+              'July ', 'Aug. ', 'Sep. ', 'Oct. ', 'Nov. ', 'Dec. '],
+    showgrid=False, zeroline=False, fixedrange=True, showline=False,
+    showdividers=False, showticklabels=True)
+    heatmap.update_xaxes(
+    side='top',
+    nticks=30,
+    tickvals=[i for i in range(1, 32)],
+    ticktext=[i for i in range(1, 32)],
+    showgrid=False, zeroline=False, fixedrange=True, showline=False,
+    ticks="outside", ticklen=5, tickcolor='#fff',
+    showdividers=False, showticklabels=True)
+    heatmap.update_layout(
+    plot_bgcolor="#fff",
+    font=dict(color='#999999'),
+    height=500, width = 1100,
+    margin=dict(t=150, l=10, r=10, b=10, pad=0)
+  )
+
+    #For calculating min and max value in pivot, so that will use in tickvals
+    minMax = pd.melt(heatmap_data.reset_index(), id_vars='day')
+    heatmap.update_traces(colorbar_orientation='h',
+                  colorbar_len=0.26,
+                  colorbar_thickness=15,
+                  colorbar_title='Daily Shooting Incidents: 2015-2023',
+                  colorbar=dict(titleside='top',titlefont=dict(size=14,family='Arial')),
+                  colorbar_xanchor='right',
+                  colorbar_xpad=0,colorbar_x=1,
+                  colorbar_y=1.01,
+                  colorbar_tickvals=np.linspace(heatmap_filtered_data.values.min(), heatmap_filtered_data.values.max(),8+1),
+                  colorbar_ticktext = ["", '<7K', '','', '9K','', '', '<12K'],
+                  colorbar_ticklen=30,
+                  colorbar_ticks='inside',
+                  colorbar_tickcolor='#fff',
+                  colorbar_tickwidth=1,
+                  colorbar_tickangle=0,
+                  colorbar_tickfont=dict(family="Courier New, monospace",
+                               size=11,
+                               color="#A5A5A5"))
+
+
+
+    heatmap.update_layout(
+    title='<b><Span style="color:#787878;font-size:22px;">Shootings in Philadelphia?</span></b>' +
+    '<i><Span style="color:#A5A5A5;font-size:13px;"><br>Six years of Philadelphia Gun Violence, averaged by month and day</span>',
+    title_x=0.1,
+    title_y=0.8,
+    )
+
+    
+    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap
     
 
 if __name__ == "__main__":
