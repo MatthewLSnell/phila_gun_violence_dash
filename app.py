@@ -389,16 +389,12 @@ def update_charts(year_filter, police_district_filter):
     heatmap = go.Figure(go.Heatmap(
     x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
     xgap=1, ygap=1,
-    colorscale=[[0.0, '#2166ac'],
-                [0.5, "#4393c3"],
-                [0.61, "#92c5de"],
-                [0.71, "#d1e5f0"],
-                [0.81, "#f7f7f7"],
-                [0.85, "#fddbc7"],
-                [0.91, "#f4a582"],
-                [0.95, "#d6604d"],
-                [1.0, "#b2182b"]],
-))
+    colorscale=[[0.0, '#eff3ff'],
+                [0.25, "#bdd7e7"],
+                [0.5, "#6baed6"],
+                [0.75, "#3182bd"],
+                [1., "#08519c"]],
+                ))
     heatmap.update_yaxes(
         autorange="reversed",
         tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
@@ -422,7 +418,7 @@ def update_charts(year_filter, police_district_filter):
   )
 
     #For calculating min and max value in pivot, so that will use in tickvals
-    minMax = pd.melt(heatmap_data.reset_index(), id_vars='month')
+    # minMax = pd.melt(heatmap_data.reset_index(), id_vars='month')
     heatmap.update_traces(colorbar_orientation='h',
                   colorbar_len=0.26,
                   colorbar_thickness=15,
@@ -431,9 +427,8 @@ def update_charts(year_filter, police_district_filter):
                   colorbar_xanchor='right',
                   colorbar_xpad=0,colorbar_x=1,
                   colorbar_y=1.01,
-                  colorbar_tickvals=np.linspace(heatmap_filtered_data.values.min(), heatmap_filtered_data.values.max(),8+1),
-                  colorbar_ticktext = ["", '<7K', '','', '9K','', '', '<12K'],
-                  colorbar_ticklen=30,
+                  colorbar_tickvals=np.linspace(heatmap_filtered_data.values.min(), heatmap_filtered_data.values.max(),4+1),
+                  colorbar_ticktext = np.round(np.linspace(heatmap_filtered_data.values.min(), heatmap_filtered_data.values.max(),4+1),0),                  colorbar_ticklen=30,
                   colorbar_ticks='inside',
                   colorbar_tickcolor='#fff',
                   colorbar_tickwidth=1,
@@ -449,6 +444,10 @@ def update_charts(year_filter, police_district_filter):
     '<i><Span style="color:#A5A5A5;font-size:13px;"><br>Six years of Philadelphia Gun Violence, averaged by month and day</span>',
     title_x=0.1,
     title_y=0.8,
+    )
+    
+    heatmap.update_traces(
+    hovertemplate='Day: %{x} <br>Month: %{y} <br>Shooting Incidents: %{z}<extra></extra>'
     )
 
     
