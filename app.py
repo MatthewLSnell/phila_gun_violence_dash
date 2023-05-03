@@ -238,7 +238,7 @@ def update_charts(year_filter, police_district_filter):
                                )
         
         heatmap_filtered_data = data.loc[:, ['month', 'day', 'shooting_incidents']]
-        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
         
     elif year_filter == 'All Years':
@@ -264,7 +264,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
     elif police_district_filter == 'All Districts':
         year_filtered_data = (data
@@ -289,7 +289,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
     else:
         year_filtered_data = (data
@@ -314,7 +314,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter & dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='day', columns='month', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
 
     shootings_per_year_bar_chart = px.bar(
@@ -383,6 +383,11 @@ def update_charts(year_filter, police_district_filter):
     
     heatmap = go.Figure(go.Heatmap(
     x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
+    xgap=1, ygap=1
+    ))
+    
+    heatmap = go.Figure(go.Heatmap(
+    x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
     xgap=1, ygap=1,
     colorscale=[[0.0, '#2166ac'],
                 [0.5, "#4393c3"],
@@ -395,29 +400,29 @@ def update_charts(year_filter, police_district_filter):
                 [1.0, "#b2182b"]],
 ))
     heatmap.update_yaxes(
-    autorange="reversed",
-    tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
-    ticktext=['Jan. ', 'Feb. ', 'March ', 'April ', 'May ', 'June ',
-              'July ', 'Aug. ', 'Sep. ', 'Oct. ', 'Nov. ', 'Dec. '],
-    showgrid=False, zeroline=False, fixedrange=True, showline=False,
-    showdividers=False, showticklabels=True)
+        autorange="reversed",
+        tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
+        ticktext=['Jan. ', 'Feb. ', 'March ', 'April ', 'May ', 'June ',
+                'July ', 'Aug. ', 'Sep. ', 'Oct. ', 'Nov. ', 'Dec. '],
+        showgrid=False, zeroline=False, fixedrange=True, showline=False,
+        showdividers=False, showticklabels=True)
     heatmap.update_xaxes(
-    side='top',
-    nticks=30,
-    tickvals=[i for i in range(1, 32)],
-    ticktext=[i for i in range(1, 32)],
-    showgrid=False, zeroline=False, fixedrange=True, showline=False,
-    ticks="outside", ticklen=5, tickcolor='#fff',
-    showdividers=False, showticklabels=True)
+        side='top',
+        nticks=30,
+        tickvals=[i for i in range(1, 32)],
+        ticktext=[i for i in range(1, 32)],
+        showgrid=False, zeroline=False, fixedrange=True, showline=False,
+        ticks="outside", ticklen=5, tickcolor='#fff',
+        showdividers=False, showticklabels=True)
     heatmap.update_layout(
-    plot_bgcolor="#fff",
-    font=dict(color='#999999'),
-    height=500, width = 1100,
-    margin=dict(t=150, l=10, r=10, b=10, pad=0)
+        plot_bgcolor="#fff",
+        font=dict(color='#999999'),
+        height=500, width = 1100,
+        margin=dict(t=150, l=10, r=10, b=10, pad=0)
   )
 
     #For calculating min and max value in pivot, so that will use in tickvals
-    minMax = pd.melt(heatmap_data.reset_index(), id_vars='day')
+    minMax = pd.melt(heatmap_data.reset_index(), id_vars='month')
     heatmap.update_traces(colorbar_orientation='h',
                   colorbar_len=0.26,
                   colorbar_thickness=15,
