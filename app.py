@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import requests
 
 # import plotly.io as pio
 from make_dataset import (
@@ -159,7 +160,7 @@ body = dbc.Container(
                                 config={"displayModeBar": False},
                                 className="card",
                             ),
-                            className="wrapper",
+                            # className="wrapper",
                         )
                     ],
                     xs=12,
@@ -169,13 +170,22 @@ body = dbc.Container(
                     xl=6,
                 ),
                 dbc.Col(
-                    [html.Div("One of two columns")],
-                    class_name="card",
+                    [
+                        html.Div(
+                        children=dcc.Graph(
+                        id="shootings_victims_age_histogram",
+                        config={"displayModeBar": False},
+                        className="card",
+                        ),
+                        # className="wrapper",
+                        )
+                    ],
                     xs=12,
                     sm=12,
                     md=12,
                     lg=6,
                     xl=6,
+                    # align="center",
                 ),
             ],
             justify="center",
@@ -214,6 +224,7 @@ app.layout = dbc.Container(body, fluid=True)
     Output("shootings_per_year_bar_chart", "figure"),
     Output("shootings_per_month_bar_chart", "figure"),
     Output("shootings_heatmap", "figure"),
+    Output("shootings_victims_age_histogram", "figure"),
     Input("year_filter", "value"),
     Input("police_district_filter", "value")
 )
@@ -447,11 +458,27 @@ def update_charts(year_filter, police_district_filter):
     )
     
     heatmap.update_traces(
-    hovertemplate='Day: %{x} <br>Month: %{y} <br>Shooting Incidents: %{z}<extra></extra>'
+    hovertemplate='Month: %{y} <br>Day: %{x} <br>Shooting Incidents: %{z}<extra></extra>'
+    )
+    
+    shooting_victims_age_histogram = px.histogram(data, x='age', nbins=20, title='Shootings per Victim Age', labels={'age': 'Victim Age'}, color_discrete_sequence=['steelblue'])
+
+    shooting_victims_age_histogram.update_layout(
+        title_text='Shootings per Victim Age',
+        title_font=dict(size=24, family='Arial, sans-serif'),
+        xaxis_title_text='Victim Age',
+        xaxis_title_font=dict(size=18, family='Arial, sans-serif'),
+        yaxis_title_text='Number of Shootings',
+        yaxis_title_font=dict(size=18, family='Arial, sans-serif'),
+        plot_bgcolor='rgba(245, 245, 245, 1)',
+        xaxis_showgrid=True, xaxis_gridcolor='rgba(200, 200, 200, 0.5)',
+        yaxis_showgrid=True, yaxis_gridcolor='rgba(200, 200, 200, 0.5)',
     )
 
+    shooting_victims_age_histogram.update_traces(marker=dict(line=dict(width=1, color='rgba(0, 0, 0, 0.5)')))
+
     
-    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap
+    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap, shooting_victims_age_histogram
     
 
 if __name__ == "__main__":

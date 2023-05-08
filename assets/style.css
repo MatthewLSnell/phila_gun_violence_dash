@@ -41,7 +41,8 @@ body {
     margin-right: auto;
     margin-left: auto;
     width: 100%;
-    max-width: 1500px;
+    /* max-width: 2400px; */
+    /* max-width: auto; */
     padding-right: 15px;
     padding-left: 15px;
     margin-top: 32px;
