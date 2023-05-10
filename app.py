@@ -119,7 +119,7 @@ body = dbc.Container(
                         config={"displayModeBar": False},
                         className="card",
                         ),
-                        className="wrapper",
+                        # className="wrapper",
                         )
                     ],
                     xs=12,
@@ -137,7 +137,7 @@ body = dbc.Container(
                                 config={"displayModeBar": False},
                                 className="card",
                             ),
-                            className="wrapper",
+                            # className="wrapper",
                         )    
                     ],
                     xs=12,
@@ -193,22 +193,22 @@ body = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [html.Div("One of two columns")],
-                    class_name="card",
+                    [
+                        html.Div(
+                        children=dcc.Graph(
+                        id="shootings_map",
+                        config={"displayModeBar": False},
+                        className="card",
+                        ),
+                        # className="wrapper",
+                        )
+                    ],
                     xs=12,
                     sm=12,
                     md=12,
-                    lg=6,
-                    xl=5,
-                ),
-                dbc.Col(
-                    [html.Div("One of two columns")],
-                    class_name="card",
-                    xs=12,
-                    sm=12,
-                    md=12,
-                    lg=6,
-                    xl=5,
+                    lg=12,
+                    xl=12,
+                    # align="center",
                 ),
             ],
             justify="center",
@@ -225,6 +225,7 @@ app.layout = dbc.Container(body, fluid=True)
     Output("shootings_per_month_bar_chart", "figure"),
     Output("shootings_heatmap", "figure"),
     Output("shootings_victims_age_histogram", "figure"),
+    Output("shootings_map", "figure"),
     Input("year_filter", "value"),
     Input("police_district_filter", "value")
 )
@@ -252,6 +253,11 @@ def update_charts(year_filter, police_district_filter):
         heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
         
+        shootings_hist_data = data
+        
+        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']]
+
+        
     elif year_filter == 'All Years':
         year_filtered_data = (data
                               .query("dist == @police_district_filter")
@@ -277,6 +283,13 @@ def update_charts(year_filter, police_district_filter):
         )
         heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
+        
+        shootings_hist_data = (data
+                               .query("dist == @police_district_filter")
+        )
+        
+        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("dist == @police_district_filter")
+
     elif police_district_filter == 'All Districts':
         year_filtered_data = (data
                               .query("year == @year_filter")
@@ -302,6 +315,13 @@ def update_charts(year_filter, police_district_filter):
         )
         heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
+        
+        shootings_hist_data = (data
+                               .query("year == @year_filter")
+        )
+        
+        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter")
+
     else:
         year_filtered_data = (data
                               .query("year == @year_filter & dist == @police_district_filter")
@@ -327,6 +347,13 @@ def update_charts(year_filter, police_district_filter):
         )
         heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
         heatmap_numpy = heatmap_data.to_numpy()
+        
+        shootings_hist_data = (data
+                               .query("year == @year_filter & dist == @police_district_filter")
+        )
+        
+        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter & dist == @police_district_filter")
+
 
     shootings_per_year_bar_chart = px.bar(
         year_filtered_data,
@@ -461,7 +488,7 @@ def update_charts(year_filter, police_district_filter):
     hovertemplate='Month: %{y} <br>Day: %{x} <br>Shooting Incidents: %{z}<extra></extra>'
     )
     
-    shooting_victims_age_histogram = px.histogram(data, x='age', nbins=20, title='Shootings per Victim Age', labels={'age': 'Victim Age'}, color_discrete_sequence=['steelblue'])
+    shooting_victims_age_histogram = px.histogram(shootings_hist_data, x='age', nbins=20, title='Shootings per Victim Age', labels={'age': 'Victim Age'}, color_discrete_sequence=['steelblue'])
 
     shooting_victims_age_histogram.update_layout(
         title_text='Shootings per Victim Age',
@@ -476,9 +503,85 @@ def update_charts(year_filter, police_district_filter):
     )
 
     shooting_victims_age_histogram.update_traces(marker=dict(line=dict(width=1, color='rgba(0, 0, 0, 0.5)')))
+    
+    map_url = "https://opendata.arcgis.com/datasets/b54ec5210cee41c3a884c9086f7af1be_0.geojson"
+    response = requests.get(map_url)
+    phl_zipcodes = response.json()
+
+    # shootings_map = px.scatter_mapbox(map_data, 
+    #                     lat="lat", 
+    #                     lon="lng",
+    #                     color="victim_outcome",
+    #                     # color_discrete_sequence=['blue'],
+    #                     opacity=0.5,
+    #                     zoom=9.5, 
+    #                     center={"lat": 39.9526, "lon": -75.1652},
+    #                     mapbox_style="carto-positron",
+    #                     hover_name='victim_outcome',
+    #                     # color_continuous_scale='blues'
+    #                     )
+
+    # shootings_map.update_layout(showlegend=False)
+
+    # shootings_map.update_traces(marker=dict(sizemode='diameter'))
+
+    # shootings_map.update_layout(mapbox={'layers': [
+    #                         {'source': phl_zipcodes,
+    #                          'type': 'line',
+    #                          'color': 'gray',
+    #                          'opacity': 0.3}
+    #                         ]})
+
+    # # Set the title and layout for the entire figure
+    # shootings_map.update_layout(title={'text': 'Shooting Incidents in Philadelphia'},
+    #               showlegend=False,
+    #               margin=dict(l=0, r=0, t=0, b=0))
+    
+    shootings_map = px.scatter_mapbox(
+        map_data,
+        lat="lat",
+        lon="lng",
+        color="victim_outcome",
+        color_discrete_sequence=px.colors.qualitative.Set1,  # Use a qualitative color scale
+        # size='some_relevant_variable',  # Add a size parameter based on a relevant variable
+        opacity=0.5,
+        zoom=9.5,
+        center={"lat": 39.9526, "lon": -75.1652},
+        mapbox_style="carto-positron",
+        hover_name='victim_outcome',
+        hover_data=['victim_outcome'],  # Add more columns to show on hover
+    )
+
+    shootings_map.update_layout(
+    showlegend=False,
+    mapbox={
+        'layers': [
+            {
+                'source': phl_zipcodes,
+                'type': 'line',
+                'color': 'gray',
+                'opacity': 0.3
+            }
+        ]
+    },
+    title={
+        'text': 'Shooting Incidents in Philadelphia',
+        'font': {'size': 24},  # Adjust title font size
+        'y': 0.95,  # Position the title vertically
+        'x': 0.5,  # Center the title horizontally
+        'xanchor': 'center',
+        'yanchor': 'top'
+    },
+    margin=dict(l=0, r=0, t=30, b=0)  # Adjust the margins to accommodate the title
+)
+
+    shootings_map.update_traces(
+        marker=dict(sizemode='diameter'),
+        hovertemplate="<b>%{hovertext}</b><br>Other Column: %{customdata[0]}<br>Relevant Column: %{customdata[1]}<br>Another Column: %{customdata[2]}<extra></extra>"
+)
 
     
-    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap, shooting_victims_age_histogram
+    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap, shooting_victims_age_histogram, shootings_map
     
 
 if __name__ == "__main__":
