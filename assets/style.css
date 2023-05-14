@@ -74,6 +74,16 @@ body {
     /* height: 400px; */
 }
 
+.map_card {
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
+    align-items: center;
+    justify-content: space-evenly;
+    vertical-align: top;
+    margin-top: 32px;
+    height: 600px;
+}
+
 
 .menu {
 

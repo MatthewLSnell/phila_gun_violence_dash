@@ -1,3 +1,4 @@
+from enum import auto
 import dash
 from dash import Dash, Input, Output, dcc, html
 import dash_bootstrap_components as dbc
@@ -6,6 +7,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import requests
+from urllib.request import urlopen
+import json
 
 # import plotly.io as pio
 from make_dataset import (
@@ -15,6 +18,9 @@ from make_dataset import (
     add_features,
     fill_missing_values,
 )
+
+with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819df2_0.geojson') as response:
+    dist_boundaries = json.load(response)
 
 # pio.renderers.default = "browser"
 
@@ -196,9 +202,9 @@ body = dbc.Container(
                     [
                         html.Div(
                         children=dcc.Graph(
-                        id="shootings_map",
+                        id="choropleth_map",
                         config={"displayModeBar": False},
-                        className="card",
+                        className="map_card",
                         ),
                         # className="wrapper",
                         )
@@ -210,6 +216,7 @@ body = dbc.Container(
                     xl=12,
                     # align="center",
                 ),
+
             ],
             justify="center",
         ),
@@ -225,7 +232,7 @@ app.layout = dbc.Container(body, fluid=True)
     Output("shootings_per_month_bar_chart", "figure"),
     Output("shootings_heatmap", "figure"),
     Output("shootings_victims_age_histogram", "figure"),
-    Output("shootings_map", "figure"),
+    Output("choropleth_map", "figure"),
     Input("year_filter", "value"),
     Input("police_district_filter", "value")
 )
@@ -255,7 +262,10 @@ def update_charts(year_filter, police_district_filter):
         
         shootings_hist_data = data
         
-        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']]
+        # map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']]
+        choropleth_map_data = data.groupby('dist')['shooting_incidents'].sum().reset_index()
+        
+        # df.groupby('dist')['fatal'].sum().reset_index()
 
         
     elif year_filter == 'All Years':
@@ -288,7 +298,12 @@ def update_charts(year_filter, police_district_filter):
                                .query("dist == @police_district_filter")
         )
         
-        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("dist == @police_district_filter")
+        choropleth_map_data = (data
+                                .query("dist == @police_district_filter")
+                                .groupby('dist')['shooting_incidents'].sum().reset_index()
+                                .reset_index()
+                               )
+        # map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("dist == @police_district_filter")
 
     elif police_district_filter == 'All Districts':
         year_filtered_data = (data
@@ -320,7 +335,13 @@ def update_charts(year_filter, police_district_filter):
                                .query("year == @year_filter")
         )
         
-        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter")
+        # map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter")
+        
+        choropleth_map_data = (data
+                                .query("year == @year_filter")
+                                .groupby('dist')['shooting_incidents'].sum().reset_index()
+                                .reset_index()
+                               )
 
     else:
         year_filtered_data = (data
@@ -352,8 +373,12 @@ def update_charts(year_filter, police_district_filter):
                                .query("year == @year_filter & dist == @police_district_filter")
         )
         
-        map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter & dist == @police_district_filter")
-
+        # map_data = data[['year', 'lat', 'lng', 'victim_outcome', 'shooting_incidents']].query("year == @year_filter & dist == @police_district_filter")
+        choropleth_map_data = (data
+                                .query("year == @year_filter & dist == @police_district_filter")
+                                .groupby('dist')['shooting_incidents'].sum().reset_index()
+                                .reset_index()
+                               )
 
     shootings_per_year_bar_chart = px.bar(
         year_filtered_data,
@@ -451,7 +476,6 @@ def update_charts(year_filter, police_district_filter):
     heatmap.update_layout(
         plot_bgcolor="#fff",
         font=dict(color='#999999'),
-        height=500, width = 1100,
         margin=dict(t=150, l=10, r=10, b=10, pad=0)
   )
 
@@ -504,9 +528,39 @@ def update_charts(year_filter, police_district_filter):
 
     shooting_victims_age_histogram.update_traces(marker=dict(line=dict(width=1, color='rgba(0, 0, 0, 0.5)')))
     
-    map_url = "https://opendata.arcgis.com/datasets/b54ec5210cee41c3a884c9086f7af1be_0.geojson"
-    response = requests.get(map_url)
-    phl_zipcodes = response.json()
+    with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819df2_0.geojson') as response:
+        dist_boundaries = json.load(response)
+        
+    choropleth_map = px.choropleth_mapbox(
+        data_frame=choropleth_map_data,
+        geojson=dist_boundaries,
+        featureidkey='properties.DISTRICT_',
+        locations='dist',
+        color='shooting_incidents',
+        color_continuous_scale='Viridis',  # choose a color scheme
+        hover_data=['shooting_incidents'],  # specify the data to show on hover
+        labels={'shooting_incidents':'Number of Shooting Incidents'},  # rename column for clarity
+        title='Choropleth Map of Shooting Incidents',  # add a title
+        mapbox_style='open-street-map',
+        center = dict(lat = 39.95, lon = -75.16),
+        opacity=0.5,
+        zoom = 9
+    )
+
+    # add a legend
+    choropleth_map.update_layout(
+        coloraxis_colorbar=dict(
+            title="Shooting Incidents",
+        ),
+        autosize=True,
+        margin=dict(l=0, r=0, t=0, b=0),  # remove white space around the map
+    )
+    
+
+    
+    # map_url = "https://opendata.arcgis.com/datasets/b54ec5210cee41c3a884c9086f7af1be_0.geojson"
+    # response = requests.get(map_url)
+    # phl_zipcodes = response.json()
 
     # shootings_map = px.scatter_mapbox(map_data, 
     #                     lat="lat", 
@@ -537,51 +591,51 @@ def update_charts(year_filter, police_district_filter):
     #               showlegend=False,
     #               margin=dict(l=0, r=0, t=0, b=0))
     
-    shootings_map = px.scatter_mapbox(
-        map_data,
-        lat="lat",
-        lon="lng",
-        color="victim_outcome",
-        color_discrete_sequence=px.colors.qualitative.Set1,  # Use a qualitative color scale
-        # size='some_relevant_variable',  # Add a size parameter based on a relevant variable
-        opacity=0.5,
-        zoom=9.5,
-        center={"lat": 39.9526, "lon": -75.1652},
-        mapbox_style="carto-positron",
-        hover_name='victim_outcome',
-        hover_data=['victim_outcome'],  # Add more columns to show on hover
-    )
+#     shootings_map = px.scatter_mapbox(
+#         map_data,
+#         lat="lat",
+#         lon="lng",
+#         color="victim_outcome",
+#         color_discrete_sequence=px.colors.qualitative.Set1,  # Use a qualitative color scale
+#         # size='some_relevant_variable',  # Add a size parameter based on a relevant variable
+#         opacity=0.5,
+#         zoom=9.5,
+#         center={"lat": 39.9526, "lon": -75.1652},
+#         mapbox_style="carto-positron",
+#         hover_name='victim_outcome',
+#         hover_data=['victim_outcome'],  # Add more columns to show on hover
+#     )
 
-    shootings_map.update_layout(
-    showlegend=False,
-    mapbox={
-        'layers': [
-            {
-                'source': phl_zipcodes,
-                'type': 'line',
-                'color': 'gray',
-                'opacity': 0.3
-            }
-        ]
-    },
-    title={
-        'text': 'Shooting Incidents in Philadelphia',
-        'font': {'size': 24},  # Adjust title font size
-        'y': 0.95,  # Position the title vertically
-        'x': 0.5,  # Center the title horizontally
-        'xanchor': 'center',
-        'yanchor': 'top'
-    },
-    margin=dict(l=0, r=0, t=30, b=0)  # Adjust the margins to accommodate the title
-)
+#     shootings_map.update_layout(
+#     showlegend=False,
+#     mapbox={
+#         'layers': [
+#             {
+#                 'source': phl_zipcodes,
+#                 'type': 'line',
+#                 'color': 'gray',
+#                 'opacity': 0.3
+#             }
+#         ]
+#     },
+#     title={
+#         'text': 'Shooting Incidents in Philadelphia',
+#         'font': {'size': 24},  # Adjust title font size
+#         'y': 0.95,  # Position the title vertically
+#         'x': 0.5,  # Center the title horizontally
+#         'xanchor': 'center',
+#         'yanchor': 'top'
+#     },
+#     margin=dict(l=0, r=0, t=30, b=0)  # Adjust the margins to accommodate the title
+# )
 
-    shootings_map.update_traces(
-        marker=dict(sizemode='diameter'),
-        hovertemplate="<b>%{hovertext}</b><br>Other Column: %{customdata[0]}<br>Relevant Column: %{customdata[1]}<br>Another Column: %{customdata[2]}<extra></extra>"
-)
+#     shootings_map.update_traces(
+#         marker=dict(sizemode='diameter'),
+#         hovertemplate="<b>%{hovertext}</b><br>Other Column: %{customdata[0]}<br>Relevant Column: %{customdata[1]}<br>Another Column: %{customdata[2]}<extra></extra>"
+# )
 
     
-    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap, shooting_victims_age_histogram, shootings_map
+    return shootings_per_year_bar_chart, shootings_per_month_bar_chart, heatmap, shooting_victims_age_histogram, choropleth_map
     
 
 if __name__ == "__main__":
