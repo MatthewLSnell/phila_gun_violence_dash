@@ -385,6 +385,7 @@ def update_charts(year_filter, police_district_filter):
         x="year",
         y="shootings",
         color="victim_outcome",
+        color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#eceef2'},
         text_auto=True,
         title="Shootings Per Year",
         labels={'victim_outcome': 'Victim Outcome'}
@@ -417,6 +418,7 @@ def update_charts(year_filter, police_district_filter):
         x="month_name",
         y="shootings",
         color="victim_outcome",
+        color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#eceef2'},
         text_auto=True,
         title=f"Shootings Per Month",
         labels={'victim_outcome': 'Victim Outcome'}
@@ -452,11 +454,11 @@ def update_charts(year_filter, police_district_filter):
     heatmap = go.Figure(go.Heatmap(
     x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
     xgap=1, ygap=1,
-    colorscale=[[0.0, '#eff3ff'],
-                [0.25, "#bdd7e7"],
-                [0.5, "#6baed6"],
-                [0.75, "#3182bd"],
-                [1., "#08519c"]],
+    colorscale=[[0.0, '#eceef2'],
+                [0.25, "#bac3d5"],
+                [0.5, "#899ab8"],
+                [0.75, "#57739C"],
+                [1., "#1c4e80"]],
                 ))
     heatmap.update_yaxes(
         autorange="reversed",
@@ -512,7 +514,7 @@ def update_charts(year_filter, police_district_filter):
     hovertemplate='Month: %{y} <br>Day: %{x} <br>Shooting Incidents: %{z}<extra></extra>'
     )
     
-    shooting_victims_age_histogram = px.histogram(shootings_hist_data, x='age', nbins=20, title='Shootings per Victim Age', labels={'age': 'Victim Age'}, color_discrete_sequence=['steelblue'])
+    shooting_victims_age_histogram = px.histogram(shootings_hist_data, x='age', nbins=20, title='Shootings per Victim Age', labels={'age': 'Victim Age'}, color_discrete_sequence=['#1c4e80'])
 
     shooting_victims_age_histogram.update_layout(
         title_text='Shootings per Victim Age',
@@ -537,14 +539,14 @@ def update_charts(year_filter, police_district_filter):
         featureidkey='properties.DISTRICT_',
         locations='dist',
         color='shooting_incidents',
-        color_continuous_scale='Viridis',  # choose a color scheme
+        color_continuous_scale='blues',  # choose a color scheme
         hover_data=['shooting_incidents'],  # specify the data to show on hover
         labels={'shooting_incidents':'Number of Shooting Incidents'},  # rename column for clarity
         title='Choropleth Map of Shooting Incidents',  # add a title
-        mapbox_style='open-street-map',
+        mapbox_style='carto-positron',
         center = dict(lat = 39.95, lon = -75.16),
-        opacity=0.5,
-        zoom = 9
+        # opacity=0.5,
+        zoom = 9.25
     )
 
     # add a legend
