@@ -10,6 +10,8 @@ def convert_to_datetime(dataf):
     dataf['date_'] = pd.to_datetime(dataf['date_'])
     dataf['date_'] = dataf['date_'].apply(lambda t: t.replace(tzinfo=None))
     dataf['date_'] = dataf['date_'].astype('datetime64[ns]')
+    dataf['time'] = pd.to_datetime(dataf['time'], format='%H:%M:%S').dt.time
+
     return dataf
 
 def add_time_series_features(dataf):
@@ -20,6 +22,7 @@ def add_time_series_features(dataf):
     dataf['month_name'] = dataf['date_'].dt.month_name()
     dataf['day_name'] = dataf['date_'].dt.day_name()
     dataf['day'] = dataf['date_'].dt.day
+    dataf['hour'] = dataf['time'].apply(lambda x: x.hour)
     return dataf
 
 def add_features(dataf):
