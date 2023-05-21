@@ -11,7 +11,9 @@ body {
 .header {
 
     /* background-color: #102C47; */
-    background-color: #4b49ac;
+    /* background-color: #4b49ac; */
+    background-color: rgba(75, 73, 172, 0.9);
+    /* #4b49ac with 50% opacity */
     height: 256px;
     display: flex;
     flex-direction: column;
