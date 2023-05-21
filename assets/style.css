@@ -10,7 +10,8 @@ body {
 
 .header {
 
-    background-color: #102C47;
+    /* background-color: #102C47; */
+    background-color: #4b49ac;
     height: 256px;
     display: flex;
     flex-direction: column;
@@ -22,7 +23,10 @@ body {
 .header-title {
 
     color: #FFFFFF;
+    font-family: "Lato", sans-serif;
     font-size: 48px;
+    font-weight: bold;
+    /* make the text bold */
     margin: 0 auto;
     text-align: center;
 
@@ -31,6 +35,8 @@ body {
 .header-description {
 
     color: #CFCFCF;
+    font-family: "Lato", sans-serif;
+    font-size: 26px;
     margin: 4px auto;
     text-align: center;
     max-width: 384px;
@@ -107,6 +113,7 @@ body {
     font-weight: bold;
     /* color: #079A82; */
     color: #003099;
+    font-family: "Lato", sans-serif;
 
 }
 

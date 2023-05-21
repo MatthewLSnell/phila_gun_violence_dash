@@ -56,8 +56,8 @@ body = dbc.Container(
         dbc.Row(
             dbc.Col(
                 [
-                    html.H1("Dashboard Grid Layout", className="header-title"),
-                    html.P("Dashboard subtitle", className="header-description"),
+                    html.H1("Exploratory Data Analysis of Philadelphia's Gun Violence", className="header-title"),
+                    html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia 2015 - 2023", className="header-description"),
                 ]
             ),
             class_name="header",
@@ -419,10 +419,13 @@ def update_charts(year_filter, police_district_filter):
         x="year",
         y="shootings",
         color="victim_outcome",
-        color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
+        color_discrete_map={'Fatal': 'rgba(222, 66, 91, .8)', 'Non-fatal': 'rgba(75, 73, 172, .8)'},
+        # color_discrete_map={'Fatal': '#DE425B', 'Non-fatal': '#4B49AC'},
+        # color_discrete_map={'Fatal': '#4B49AC', 'Non-fatal': '#98BDFF'},
+        # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
         # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#eceef2'},
         text_auto=True,
-        title="Shootings Per Year",
+        title='<b><Span style="color:#919EAB;font-size:22px;">Shooting Incidents Per Year</span></b>',
         labels={'victim_outcome': 'Victim Outcome'}
     )
     
@@ -447,16 +450,22 @@ def update_charts(year_filter, police_district_filter):
         )
         })
     shootings_per_year_bar_chart.update_traces(texttemplate='%{y:,}')
+    shootings_per_year_bar_chart.update_layout(barmode='group')
     
     shootings_per_month_bar_chart = px.bar(
         month_filtered_data,
         x="month_name",
         y="shootings",
         color="victim_outcome",
-        color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
+        color_discrete_map={'Fatal': 'rgba(222, 66, 91, .8)', 'Non-fatal': 'rgba(75, 73, 172, .8)'},
+        # color_discrete_map={'Fatal': '#DE425B', 'Non-fatal': '#4B49AC'},
+        # color_discrete_map={'Fatal': '#4B49AC', 'Non-fatal': '#DE425B'},
+        #DE425B
+        # color_discrete_map={'Fatal': '#4B49AC', 'Non-fatal': '#98BDFF'},
+        # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
         # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#eceef2'},
         text_auto=True,
-        title=f"Shootings Per Month",
+        title=f'<b><Span style="color:#919EAB;font-size:22px;">Shootings Per Month</span></b>',
         labels={'victim_outcome': 'Victim Outcome'}
     )
     
@@ -481,6 +490,8 @@ def update_charts(year_filter, police_district_filter):
         )
         })
     shootings_per_month_bar_chart.update_traces(texttemplate='%{y:,}')
+    shootings_per_month_bar_chart.update_layout(barmode='group')
+    
     
     heatmap = go.Figure(go.Heatmap(
     x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
@@ -490,11 +501,17 @@ def update_charts(year_filter, police_district_filter):
     heatmap = go.Figure(go.Heatmap(
     x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
     xgap=1, ygap=1,
-    colorscale=[[0.0, '#eceef2'],
-                [0.25, "#bac3d5"],
-                [0.5, "#899ab8"],
-                [0.75, "#57739C"],
-                [1., "#1c4e80"]],
+    # colorscale=[[0.0, '#eceef2'],
+    #             [0.25, "#bac3d5"],
+    #             [0.5, "#899ab8"],
+    #             [0.75, "#57739C"],
+    #             [1., "#1c4e80"]],
+    #             ))
+    colorscale=[[0.0, '#4b49ac'],
+                [0.25, '#a299cf'],
+                [0.5, "#f1f1f1"],
+                [0.75, "#ec9c9d"],
+                [1., "#de425b"]],
                 ))
     heatmap.update_yaxes(
         autorange="reversed",
@@ -522,7 +539,7 @@ def update_charts(year_filter, police_district_filter):
     heatmap.update_traces(colorbar_orientation='h',
                   colorbar_len=0.26,
                   colorbar_thickness=15,
-                  colorbar_title='Daily Shooting Incidents: 2015-2023',
+                  colorbar_title='Daily Shooting Incidents',
                   colorbar=dict(titleside='top',titlefont=dict(size=14,family='Arial')),
                   colorbar_xanchor='right',
                   colorbar_xpad=0,colorbar_x=1,
@@ -540,8 +557,9 @@ def update_charts(year_filter, police_district_filter):
 
 
     heatmap.update_layout(
-    title='<b><Span style="color:#787878;font-size:22px;">Shootings in Philadelphia?</span></b>' +
-    '<i><Span style="color:#A5A5A5;font-size:13px;"><br>Six years of Philadelphia Gun Violence, averaged by month and day</span>',
+    title='<b><Span style="color:#919EAB;font-size:22px;">Daily Distribution of Shootings Incidents</span></b>',
+    # title='<b><Span style="color:#787878;font-size:22px;">Daily Distribution of Shootings in Philadelphia</span></b>' +
+    # '<i><Span style="color:#A5A5A5;font-size:13px;"><br>Six years of Philadelphia Gun Violence, averaged by month and day</span>',
     title_x=0.1,
     title_y=0.8,
     )
@@ -575,23 +593,25 @@ def update_charts(year_filter, police_district_filter):
         featureidkey='properties.DISTRICT_',
         locations='dist',
         color='shooting_incidents',
-        color_continuous_scale='blues',  # choose a color scheme
+        # color_continuous_scale='blues',  # choose a color scheme
+        color_continuous_scale=["#4B49AC", "#A299CF", "#F1F1F1", "#EC9C9D", "#DE425B"],
         hover_data=['shooting_incidents'],  # specify the data to show on hover
         labels={'shooting_incidents':'Number of Shooting Incidents'},  # rename column for clarity
-        title='Choropleth Map of Shooting Incidents',  # add a title
+        title='<b><Span style="color:#919EAB;font-size:22px;">Shootings Per Police District</span></b>',  # new title
         mapbox_style='carto-positron',
-        center = dict(lat = 39.95, lon = -75.16),
-        # opacity=0.5,
-        zoom = 9.25
+        center = dict(lat = 39.9526, lon = -75.165222),
+        opacity=0.75,
+        zoom = 9
     )
 
     # add a legend
     choropleth_map.update_layout(
         coloraxis_colorbar=dict(
-            title="Shooting Incidents",
+            title="Shootings",
+            tickformat=',',  # format tick labels as comma-separated values
         ),
         autosize=True,
-        margin=dict(l=0, r=0, t=0, b=0),  # remove white space around the map
+        margin=dict(l=0, r=0, t=50, b=0),  # remove white space around the map
     )
     
     shootings_per_hour_bar_chart = px.bar(
@@ -599,10 +619,13 @@ def update_charts(year_filter, police_district_filter):
         x="hour",
         y="count",
         color="victim_outcome",
-        color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
+        color_discrete_map={'Fatal': 'rgba(222, 66, 91, .8)', 'Non-fatal': 'rgba(75, 73, 172, .8)'},
+        # color_discrete_map={'Fatal': '#DE425B', 'Non-fatal': '#4B49AC'},
+        # color_discrete_map={'Fatal': '#4B49AC', 'Non-fatal': '#98BDFF'},
+        # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#90B5EF'},
         # color_discrete_map={'Fatal': '#1c4e80', 'Non-fatal': '#eceef2'},
         text_auto=True,
-        title="Shootings Per Hour of Day",
+        title='<b><Span style="color:#919EAB;font-size:22px;">Shootings Per Hour of Day</span></b>',
         labels={'victim_outcome': 'Victim Outcome'}
     )
     
@@ -632,6 +655,7 @@ def update_charts(year_filter, police_district_filter):
     shootings_per_hour_bar_chart.update_xaxes(
         tickvals = shootings_per_hour_data['hour']
     )
+    # shootings_per_hour_bar_chart.update_layout(barmode='group')
     
     # shootings_per_hour_bar_chart.update_xaxes(
     #     # tickvals='hour',
