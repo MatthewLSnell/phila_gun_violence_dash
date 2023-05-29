@@ -32,8 +32,13 @@ def add_features(dataf):
     dataf['shooting_incidents'] = np.where(dataf['objectid'] > 0, 1, 0)
     return dataf
 
-def fill_missing_values(dataf):
-    """Fills missing values"""
-    dataf['dist'] = dataf['dist'].fillna(0.0)
+def drop_missing_dist(dataf):
+    """Drops rows where 'dist' is missing"""
+    dataf = dataf.dropna(subset=['dist'])
     return dataf
+
+# def fill_missing_values(dataf):
+#     """Fills missing values"""
+#     dataf['dist'] = dataf['dist'].fillna(0.0)
+#     return dataf
     

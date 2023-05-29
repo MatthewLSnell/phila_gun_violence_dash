@@ -16,7 +16,8 @@ from make_dataset import (
     convert_to_datetime,
     add_time_series_features,
     add_features,
-    fill_missing_values,
+    drop_missing_dist,
+    # fill_missing_values,
 )
 
 with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819df2_0.geojson') as response:
@@ -28,12 +29,15 @@ with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819
 # Fetch dataset
 df = pd.read_csv("shootings.csv")
 
+# df = pd.read_csv("https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id")
+
 data = (
     df.pipe(start_pipeline)
     .pipe(convert_to_datetime)
     .pipe(add_time_series_features)
     .pipe(add_features)
-    .pipe(fill_missing_values)
+    .pipe(drop_missing_dist)
+    # .pipe(fill_missing_values)
 )
 
 years = data["year"].sort_values().unique().tolist()
@@ -257,7 +261,7 @@ def update_charts(year_filter, police_district_filter):
                                )
         
         heatmap_filtered_data = data.loc[:, ['month', 'day', 'shooting_incidents']]
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
         heatmap_numpy = heatmap_data.to_numpy()
         
         # shootings_hist_data = data
@@ -300,7 +304,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
         heatmap_numpy = heatmap_data.to_numpy()
         
         # shootings_hist_data = (data
@@ -346,7 +350,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
         heatmap_numpy = heatmap_data.to_numpy()
         
         # shootings_hist_data = (data
@@ -393,7 +397,7 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter & dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum')
+        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
         heatmap_numpy = heatmap_data.to_numpy()
         
         # shootings_hist_data = (data
@@ -493,13 +497,34 @@ def update_charts(year_filter, police_district_filter):
     shootings_per_month_bar_chart.update_layout(barmode='group')
     
     
-    heatmap = go.Figure(go.Heatmap(
-    x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
-    xgap=1, ygap=1
-    ))
+    # heatmap = go.Figure(go.Heatmap(
+    # x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
+    # xgap=1, ygap=1
+    # ))
     
+    # heatmap = go.Figure(go.Heatmap(
+    # x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
+    # xgap=1, ygap=1,
+    # # colorscale=[[0.0, '#eceef2'],
+    # #             [0.25, "#bac3d5"],
+    # #             [0.5, "#899ab8"],
+    # #             [0.75, "#57739C"],
+    # #             [1., "#1c4e80"]],
+    # #             ))
+    # colorscale=[[0.0, '#4b49ac'],
+    #             [0.25, '#a299cf'],
+    #             [0.5, "#f1f1f1"],
+    #             [0.75, "#ec9c9d"],
+    #             [1., "#de425b"]],
+    #             ))
+    
+    months = heatmap_data.index.tolist()
+    days = heatmap_data.columns.tolist()
     heatmap = go.Figure(go.Heatmap(
-    x=[i for i in range(1, 32)], y=[i for i in range(1, 13)], z=heatmap_numpy,
+    # x=[i for i in range(1, 32)], 
+    x = days,
+    y=months, 
+    z=heatmap_numpy,
     xgap=1, ygap=1,
     # colorscale=[[0.0, '#eceef2'],
     #             [0.25, "#bac3d5"],
@@ -515,7 +540,7 @@ def update_charts(year_filter, police_district_filter):
                 ))
     heatmap.update_yaxes(
         autorange="reversed",
-        tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12],
+        tickvals=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         ticktext=['Jan. ', 'Feb. ', 'March ', 'April ', 'May ', 'June ',
                 'July ', 'Aug. ', 'Sep. ', 'Oct. ', 'Nov. ', 'Dec. '],
         showgrid=False, zeroline=False, fixedrange=True, showline=False,
