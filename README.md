@@ -2,10 +2,6 @@
 
 This application is an interactive tool developed using Plotly Dash to visualize gun violence trends and patterns in Philadelphia from 2015 through Present.  By transforming raw data into insightful visualizations, the application seeks to provide a more nuanced understanding of trends and patterns in shooting incidents. Through a range of interactive features, users can customize their view, filter data, and gain detailed insights into gun violence incidents per year and police district. 
 
-## Project Description
-
-The application leverages a dataset of shooting incidents and performs several data transformations to format, clean, and enhance the data. The enriched data is then presented in several visualizations to provide various perspectives about the shooting incidents. Users can filter and interact with these visualizations to drill down into specific details.
-
 ## Installation
 
 Before running the application, install the required Python libraries. You can do this by running the following command in your terminal:
