@@ -29,18 +29,8 @@ Before running the application, install the required Python libraries. You can d
 pip install -r requirements.txt
 ```
 
-## Visualizations
-The application includes the following visualizations:
+## Data
+The data used in this Dash application is sourced from the City of Philadelphia's Open Data platform. The specific dataset represents shooting victims in the city and is provided as a public service by the Philadelphia Police Department. It includes important information such as the date, time, and location of each incident, as well as details about the victim and the outcome of the incident.
 
-- **Shootings Per Year Bar Chart:** Displays the number of shootings each year, segmented by the victim outcome (fatal or non-fatal).
-- **Shootings Per Month Bar Chart:** Shows the number of shootings each month.
-- **Shootings Heatmap:** A heatmap that displays shootings data across different time dimensions.
-- **Shootings Per Hour Bar Chart:** Visualizes the number of shootings during each hour of the day.
-- **Shootings Per Police District Map:** A choropleth map that presents the number of shootings in each police district.
-Each visualization has interactive features, such as hover effects, to display additional data and provide more context.
+The dataset is accessible through the following API endpoint provided by the city's CartoDB account: https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id
 
-## Contributing
-Contributions are welcome! If you would like to contribute to this project, please fork the repository and submit a pull request.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
