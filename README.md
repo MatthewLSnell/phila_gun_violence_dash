@@ -1,6 +1,6 @@
 # Plotly Dash Shootings Data Visualization Application
 
-This application, built with Plotly Dash, provides an interactive interface for visualizing and exploring shootings data. This tool aims to enhance understanding and insights about shooting incidents using data-driven analytics. 
+This application is an interactive tool developed using Plotly Dash to visualize gun violence trends and patterns in Philadelphia from 2015 through Present.  By transforming raw data into insightful visualizations, the application seeks to provide a more nuanced understanding of trends and patterns in shooting incidents. Through a range of interactive features, users can customize their view, filter data, and gain detailed insights into gun violence incidents per year and police district. 
 
 ## Project Description
 
