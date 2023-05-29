@@ -73,10 +73,10 @@ body {
 } */
 
 .card {
-    margin-bottom: 24px;
-    margin-left: 24px;
+    margin-bottom: 20px;
+    margin-left: 20px;
     /* change this value to the desired left margin */
-    margin-right: 24px;
+    margin-right: 20px;
     /* change this value to the desired right margin */
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
     align-items: center;
@@ -87,10 +87,10 @@ body {
 }
 
 .map_card {
-    margin-bottom: 24px;
-    margin-left: 24px;
+    margin-bottom: 20px;
+    margin-left: 20px;
     /* change this value to the desired left margin */
-    margin-right: 24px;
+    margin-right: 20px;
     /* change this value to the desired right margin */
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
     align-items: center;
