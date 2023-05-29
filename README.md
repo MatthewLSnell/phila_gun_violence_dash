@@ -7,15 +7,15 @@ This Dash application provides a comprehensive visualization and analysis of gun
 
 The interactive features of the app allow users to explore different aspects of the shootings data, including:
 
--**Shootings Per Year:** This bar chart displays the total number of shootings for each year, segmented by the victim outcome (either fatal or non-fatal). It offers insights into the annual trend of shooting incidents.
+- **Shootings Per Year:** This bar chart displays the total number of shootings for each year, segmented by the victim outcome (either fatal or non-fatal). It offers insights into the annual trend of shooting incidents.
 
--**Shootings Per Month:** This bar chart provides a monthly breakdown of shooting incidents. Users can examine the distribution of shootings throughout the year and identify any seasonal trends.
+- **Shootings Per Month:** This bar chart provides a monthly breakdown of shooting incidents. Users can examine the distribution of shootings throughout the year and identify any seasonal trends.
 
--**Shootings Per Hour:** This visualization breaks down the shootings by the hour of the day, providing insights into the times of day when shooting incidents are most prevalent.
+- **Shootings Per Hour:** This visualization breaks down the shootings by the hour of the day, providing insights into the times of day when shooting incidents are most prevalent.
 
--**Daily Distribution of Shooting Incidents Per Day Heatmap:** This heatmap represents the daily distribution of shooting incidents. It allows users to identify patterns and trends in the occurrence of daily shootings over the course of a year.
+- **Daily Distribution of Shooting Incidents Per Day Heatmap:** This heatmap represents the daily distribution of shooting incidents. It allows users to identify patterns and trends in the occurrence of daily shootings over the course of a year.
 
--**Shootings Per Police District Choropleth Map:** This map displays the number of shootings per police district, providing a geographical overview of shooting incidents.
+- **Shootings Per Police District Choropleth Map:** This map displays the number of shootings per police district, providing a geographical overview of shooting incidents.
 
 The application also includes a dropdown feature, enabling users to filter the data by specific years and police districts. This feature allows for more targeted analysis, helping users to examine trends and patterns within specific time periods or geographical areas.
 
