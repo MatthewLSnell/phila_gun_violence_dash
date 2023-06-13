@@ -10,16 +10,18 @@ import io
 import requests
 from sqlalchemy import VARCHAR, Column, Integer, DateTime, Float, BigInteger
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.dialects.postgresql import insert 
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select
 from sqlalchemy.dialects import postgresql
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from datetime import datetime
 
+
 def get_db_params():
-    """    
+    """
     Load database parameters from environment variables
     and return as a dictionary.
     """
@@ -32,22 +34,27 @@ def get_db_params():
         "port": os.getenv("DB_PORT"),
     }
 
+
 db_params = get_db_params()
 
 Base = declarative_base()
+
 
 def start_session():
     """
     Start a new session with the PostgreSQL database.
     Returns the session object.
     """
-    engine = create_engine(f'postgresql://{db_params["user"]}:{db_params["password"]}@{db_params["host"]}:{db_params["port"]}/{db_params["database"]}')
+    engine = create_engine(
+        f'postgresql://{db_params["user"]}:{db_params["password"]}@{db_params["host"]}:{db_params["port"]}/{db_params["database"]}'
+    )
     session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
     return session()
 
+
 class PHL_SHOOTING(Base):
-    __tablename__ = 'phl_shooting'
+    __tablename__ = "phl_shooting"
     date_inserted = Column(DateTime)
     date_updated = Column(DateTime)
     the_geom = Column(VARCHAR)
@@ -79,11 +86,6 @@ class PHL_SHOOTING(Base):
     def __repr__(self):
         return str([getattr(self, c.name, None) for c in self.__table__.c])
 
-# def compile_query(query):
-#     """Via http://nicolascadou.com/blog/2014/01/printing-actual-sqlalchemy-queries"""
-#     compiler = query.compile if not hasattr(query, 'statement') else query.statement.compile
-#     return compiler(dialect=postgresql.dialect())
-
 
 def fetch_data(url):
     """
@@ -96,14 +98,13 @@ def fetch_data(url):
     data = pd.read_csv(io.StringIO(response.text))
     current_time = datetime.now()  # get current time
 
-    data['date_inserted'] = current_time
-    data['date_updated'] = current_time
+    data["date_inserted"] = current_time
+    data["date_updated"] = current_time
 
-    return data.to_dict('records')
+    return data.to_dict("records")
 
 
-
-def upsert(session, model, rows, as_of_date_col='objectid', no_update_cols=[]):
+def upsert(session, model, rows, as_of_date_col="objectid", no_update_cols=[]):
     """
     Perform an upsert (update or insert) operation on the specified table.
     If a row with the same objectid already exists, it updates the row.
@@ -112,25 +113,29 @@ def upsert(session, model, rows, as_of_date_col='objectid', no_update_cols=[]):
     table = model.__table__
 
     stmt = insert(table).values(rows)
-    
-    no_update_cols.extend(['date_inserted'])
 
-    update_cols = [c.name for c in table.c
-                   if c not in list(table.primary_key.columns)
-                   and c.name not in no_update_cols]
-    
+    no_update_cols.extend(["date_inserted", "date_updated"])
+
+    update_cols = [
+        c.name
+        for c in table.c
+        if c not in list(table.primary_key.columns) and c.name not in no_update_cols
+    ]
+
     current_time = datetime.now()
     set_dict = {k: getattr(stmt.excluded, k) for k in update_cols}
-    set_dict['date_updated'] = current_time
+    set_dict["date_updated"] = current_time
 
     on_conflict_stmt = stmt.on_conflict_do_update(
         index_elements=table.primary_key.columns,
-        set_= set_dict,
-        index_where=(getattr(model, as_of_date_col) != getattr(stmt.excluded, as_of_date_col))
-        )
+        set_=set_dict,
+        index_where=(
+            getattr(model, as_of_date_col) != getattr(stmt.excluded, as_of_date_col)
+        ),
+    )
 
-    # print(compile_query(on_conflict_stmt))
     session.execute(on_conflict_stmt)
+
 
 def print_table_info(session, table):
     """Prints the number of rows, columns, and date of last update in a SQL table."""
@@ -145,31 +150,54 @@ def print_table_info(session, table):
 
     # Find the date of the last update
     last_update = max(row.date_updated for row in rows) if rows else None
-    
+
     print(f"Number of rows: {num_rows:,}")
     print(f"Number of columns: {num_columns}")
     print(f"Date of last update: {last_update}")
-
     
+def get_dataframe(session, table):
+    """
+    Query all rows from a SQL table and return a pandas DataFrame.
+
+    Parameters:
+    - session: The SQLAlchemy session object
+    - table: The SQLAlchemy table object
+
+    Returns:
+    - df: A pandas DataFrame containing the SQL table data
+    """
+    # Define a select statement
+    stmt = select(table)
+
+    # Execute the statement and fetch all results
+    results = session.execute(stmt).fetchall()
+
+    # Create a dataframe from the results
+    df = pd.read_sql(stmt, session.bind)
+
+    return df
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     session = start_session()
-    
+
     url = "https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id"
 
-    # Fetch the data from the url 
+    # Fetch the data from the url
     rows = fetch_data(url)
-    
-    print('\nBefore Upsert:\n')      
-    print_table_info(session, PHL_SHOOTING)  
-    
+
+    print("\nBefore Upsert:\n")
+    print_table_info(session, PHL_SHOOTING)
+
     # Perform the upsert operation
-    upsert(session, PHL_SHOOTING, rows, 'objectid')
+    upsert(session, PHL_SHOOTING, rows, "objectid")
     session.commit()
 
-    print('\nAfter upsert:\n')
+    print("\nAfter upsert:\n")
     print_table_info(session, PHL_SHOOTING)
     
-
+    # Use the function to query the table and create a dataframe
+    df = get_dataframe(session, PHL_SHOOTING)
     
+    # Print the first five rows of the dataframe
+    print("\n" + str(df.head()))

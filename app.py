@@ -1,17 +1,19 @@
 
 # Import the required libraries
 import dash
-from dash import Dash, Input, Output, dcc, html
+from dash import Input, Output, dcc, html
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 import numpy as np
 from urllib.request import urlopen
 import json
 
+# Importing modules for querying data from a SQL database.
+from data.upsert import get_dataframe, start_session, PHL_SHOOTING
+
 # Data pipeline to transform the csv.
-from make_dataset import (
+from data.make_dataset import (
     start_pipeline,
     convert_to_datetime,
     add_time_series_features,
@@ -19,14 +21,22 @@ from make_dataset import (
     drop_missing_dist,
 )
 
+# Start a new session with the PostgreSQL database.
+session = start_session()
+
+# GeoJSON file containing district boundaries.
 with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819df2_0.geojson') as response:
     dist_boundaries = json.load(response)
 
 
-# This line of code reads a CSV file directly from a URL.
-df = pd.read_csv("https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id")
+# Get the data from PostgreSQL database and convert it into a dataframe.
+df = get_dataframe(session, PHL_SHOOTING)
+last_refreshed = df.date_updated.max()
+# formatted_date = last_refreshed.strftime('%Y-%m-%d %I:%M %p')
+formatted_date = last_refreshed.strftime('%m-%d-%Y %I:%M %p')
+# df = pd.read_csv("https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id")
 
-# Data pipeline to transform the csv.
+# Apply the data pipeline to transform the CSV data.
 data = (
     df.pipe(start_pipeline)
     .pipe(convert_to_datetime)
@@ -35,11 +45,11 @@ data = (
     .pipe(drop_missing_dist)
 )
 
-# Dropdown values for the filters
+# Prepare the list of unique years and districts for the dropdown values in the Dash app.
 years = data["year"].sort_values().unique().tolist()
 districts = data["dist"].sort_values().unique().tolist()
 
-# Create app
+# Create a Dash app with external bootstrap stylesheet and meta tags.
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.FLATLY],
@@ -58,6 +68,7 @@ body = dbc.Container(
                 [
                     html.H1("Exploratory Data Analysis of Philadelphia's Gun Violence", className="header-title"),
                     html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - 2023)", className="header-description"),
+                    html.P(f"Last Updated: {formatted_date}", className="last-refreshed"),
                 ]
             ),
             class_name="header",
