@@ -57,6 +57,7 @@ app = dash.Dash(
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
     ],
 )
+server = app.server
 
 # Layout
 # ==================================
@@ -68,7 +69,7 @@ body = dbc.Container(
                 [
                     html.H1("Exploratory Data Analysis of Philadelphia's Gun Violence", className="header-title"),
                     html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - 2023)", className="header-description"),
-                    html.P(f"Last Updated: {formatted_date}", className="last-refreshed"),
+                    html.P(f"Last U  pdated: {formatted_date}", className="last-refreshed"),
                 ]
             ),
             class_name="header",
