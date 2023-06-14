@@ -190,7 +190,7 @@ if __name__ == "__main__":
     print_table_info(session, PHL_SHOOTING)
 
     # Perform the upsert operation
-    upsert(session, PHL_SHOOTING, rows, "objectid")
+    upsert(session, PHL_SHOOTING, rows, "objectid", ["date_inserted", "date_updated"])
     session.commit()
 
     print("\nAfter upsert:\n")
