@@ -104,7 +104,7 @@ def fetch_data(url):
     return data.to_dict("records")
 
 
-def upsert(session, model, rows, as_of_date_col="objectid", no_update_cols=[]):
+def upsert(session, model, rows, as_of_date_col="date_updated", no_update_cols=[]):
     """
     Perform an upsert (update or insert) operation on the specified table.
     If a row with the same objectid already exists, it updates the row.
@@ -114,7 +114,7 @@ def upsert(session, model, rows, as_of_date_col="objectid", no_update_cols=[]):
 
     stmt = insert(table).values(rows)
 
-    no_update_cols.extend(["date_inserted", "date_updated"])
+    no_update_cols.extend(["date_inserted"])
 
     update_cols = [
         c.name
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     print_table_info(session, PHL_SHOOTING)
 
     # Perform the upsert operation
-    upsert(session, PHL_SHOOTING, rows, "objectid", ["date_inserted", "date_updated"])
+    upsert(session, PHL_SHOOTING, rows, "date_updated", ["date_inserted"])
     session.commit()
 
     print("\nAfter upsert:\n")
