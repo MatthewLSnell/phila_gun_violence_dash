@@ -14,10 +14,10 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
-from sqlalchemy.dialects import postgresql
+
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import date, datetime
 
 
 def get_db_params():
@@ -41,7 +41,7 @@ Base = declarative_base()
 
 
 def start_session():
-    """
+    """ca
     Start a new session with the PostgreSQL database.
     Returns the session object.
     """
@@ -55,7 +55,6 @@ def start_session():
 
 class PHL_SHOOTING(Base):
     __tablename__ = "phl_shooting"
-    date_inserted = Column(DateTime)
     date_updated = Column(DateTime)
     the_geom = Column(VARCHAR)
     the_geom_webmercator = Column(VARCHAR)
@@ -96,45 +95,44 @@ def fetch_data(url):
     response.raise_for_status()
 
     data = pd.read_csv(io.StringIO(response.text))
-    current_time = datetime.now()  # get current time
+    
+    # Add 'date_updated' column with the current time
+    data['date_updated'] = datetime.now()
 
-    data["date_inserted"] = current_time
-    data["date_updated"] = current_time
 
     return data.to_dict("records")
 
 
-def upsert(session, model, rows, as_of_date_col="date_updated", no_update_cols=[]):
+def upsert(session, model, rows):
     """
     Perform an upsert (update or insert) operation on the specified table.
     If a row with the same objectid already exists, it updates the row.
     If it does not exist, it inserts a new row.
     """
+    
     table = model.__table__
 
     stmt = insert(table).values(rows)
-
-    no_update_cols.extend(["date_inserted"])
+    
 
     update_cols = [
         c.name
         for c in table.c
-        if c not in list(table.primary_key.columns) and c.name not in no_update_cols
+        if c not in list(table.primary_key.columns)
     ]
 
-    current_time = datetime.now()
     set_dict = {k: getattr(stmt.excluded, k) for k in update_cols}
-    set_dict["date_updated"] = current_time
-
+    
     on_conflict_stmt = stmt.on_conflict_do_update(
         index_elements=table.primary_key.columns,
-        set_=set_dict,
-        index_where=(
-            getattr(model, as_of_date_col) != getattr(stmt.excluded, as_of_date_col)
-        ),
+        set_=set_dict
     )
-
+    
     session.execute(on_conflict_stmt)
+
+def get_existing_objectids(session, model):
+    """Return a set of all existing objectids in the database for a given model."""
+    return set(row.objectid for row in session.query(model.objectid).all())
 
 
 def print_table_info(session, table):
@@ -147,13 +145,13 @@ def print_table_info(session, table):
 
     # Calculate the number of columns
     num_columns = len(rows[0].__table__.columns) if rows else 0
+    
+    last_update = rows[0].date_updated if rows else None
 
-    # Find the date of the last update
-    last_update = max(row.date_updated for row in rows) if rows else None
 
     print(f"Number of rows: {num_rows:,}")
     print(f"Number of columns: {num_columns}")
-    print(f"Date of last update: {last_update}")
+    print(f"Last updated: {last_update}")
     
 def get_dataframe(session, table):
     """
@@ -182,16 +180,27 @@ if __name__ == "__main__":
     session = start_session()
 
     url = "https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id"
-
+    
+    
     # Fetch the data from the url
     rows = fetch_data(url)
+    
+    existing_objectids = get_existing_objectids(session, PHL_SHOOTING)
+    new_objectids = {row['objectid'] for row in rows}
+
+    matching_objectids = existing_objectids & new_objectids
+    new_objectids = new_objectids - existing_objectids
+
 
     print("\nBefore Upsert:\n")
     print_table_info(session, PHL_SHOOTING)
 
     # Perform the upsert operation
-    upsert(session, PHL_SHOOTING, rows, "date_updated", ["date_inserted"])
+    upsert(session, PHL_SHOOTING, rows)
     session.commit()
+    
+    print(f"\nNumber of matching objectids: {len(matching_objectids):,}")
+    print(f"Number of new objectids: {len(new_objectids):,}\n")
 
     print("\nAfter upsert:\n")
     print_table_info(session, PHL_SHOOTING)
