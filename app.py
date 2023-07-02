@@ -1,5 +1,6 @@
 
 # Import the required libraries
+import pandas as pd
 import dash
 from dash import Input, Output, dcc, html
 import dash_bootstrap_components as dbc
@@ -8,9 +9,6 @@ import plotly.graph_objects as go
 import numpy as np
 from urllib.request import urlopen
 import json
-
-# Importing modules for querying data from a SQL database.
-from data.upsert import get_dataframe, start_session, PHL_SHOOTING
 
 # Data pipeline to transform the csv.
 from data.make_dataset import (
@@ -21,20 +19,14 @@ from data.make_dataset import (
     drop_missing_dist,
 )
 
-# Start a new session with the PostgreSQL database.
-session = start_session()
 
 # GeoJSON file containing district boundaries.
 with urlopen('https://opendata.arcgis.com/datasets/62ec63afb8824a15953399b1fa819df2_0.geojson') as response:
     dist_boundaries = json.load(response)
 
 
-# Get the data from PostgreSQL database and convert it into a dataframe.
-df = get_dataframe(session, PHL_SHOOTING)
-last_refreshed = df.date_updated.max()
-# formatted_date = last_refreshed.strftime('%Y-%m-%d %I:%M %p')
-formatted_date = last_refreshed.strftime('%m-%d-%Y %I:%M %p')
-# df = pd.read_csv("https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id")
+# Read the CSV data from the Carto database.
+df = pd.read_csv("https://phl.carto.com/api/v2/sql?q=SELECT+*,+ST_Y(the_geom)+AS+lat,+ST_X(the_geom)+AS+lng+FROM+shootings&filename=shootings&format=csv&skipfields=cartodb_id")
 
 # Apply the data pipeline to transform the CSV data.
 data = (
@@ -44,6 +36,10 @@ data = (
     .pipe(add_features)
     .pipe(drop_missing_dist)
 )
+
+# latest date in the dataset 
+last_refreshed = data['date_'].max()
+formatted_date = last_refreshed.strftime('%Y-%m-%d')
 
 # Prepare the list of unique years and districts for the dropdown values in the Dash app.
 years = data["year"].sort_values().unique().tolist()
@@ -68,7 +64,7 @@ body = dbc.Container(
                 [
                     html.H1("Exploratory Data Analysis of Philadelphia's Gun Violence", className="header-title"),
                     html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - 2023)", className="header-description"),
-                    html.P(f"Last U  pdated: {formatted_date}", className="last-refreshed"),
+                    html.P(f"Last Updated: {formatted_date}", className="last-refreshed"),
                 ]
             ),
             class_name="header",
