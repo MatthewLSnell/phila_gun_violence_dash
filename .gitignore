@@ -4,5 +4,7 @@ dash_env
 .env
 *.pyc
 .DS_Store
+environment.yml
+
 
 
