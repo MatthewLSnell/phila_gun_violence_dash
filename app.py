@@ -63,7 +63,7 @@ body = dbc.Container(
             dbc.Col(
                 [
                     html.H1("Exploratory Data Analysis of Philadelphia's Gun Violence", className="header-title"),
-                    html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - 2023)", className="header-description"),
+                    html.P("An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - Present)", className="header-description"),
                     html.P(f"Last Updated: {formatted_date}", className="last-refreshed"),
                 ]
             ),
