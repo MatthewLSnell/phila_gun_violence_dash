@@ -23,7 +23,7 @@ The purpose of this tool is to promote data-driven understanding and decision-ma
 
 ## Installation
 
-Before running the application, install the required Python libraries. You can do this by running the following command in your terminal:
+Before running the application, create a virtual environment and install the required Python libraries. You can do this by running the following command in your terminal:
 
 ```bash
 pip install -r requirements.txt
