@@ -2,6 +2,9 @@
 
 This application is an interactive tool developed using Plotly Dash to visualize gun violence trends and patterns in Philadelphia from 2015 through Present.  By transforming raw data into insightful visualizations, the application seeks to provide a more nuanced understanding of gun violence trends and patterns in Philadelphia. 
 
+[Exploratory Data Analysis of Philadelphia's Gun Violence: 
+An Interactive Exploration of Gun Violence Trends and Patterns in Philadelphia (2015 - Present)](http://masnell5.pythonanywhere.com/)
+
 ## Analysis
 This Dash application provides a comprehensive visualization and analysis of gun violence incidents in Philadelphia, highlighting trends and patterns in various views.
 
@@ -23,7 +26,7 @@ The purpose of this tool is to promote data-driven understanding and decision-ma
 
 ## Installation
 
-Before running the application, install the required Python libraries. You can do this by running the following command in your terminal:
+Before running the application, create a virtual environment and install the required Python libraries. You can do this by running the following command in your terminal:
 
 ```bash
 pip install -r requirements.txt
