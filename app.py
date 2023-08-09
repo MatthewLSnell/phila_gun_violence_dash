@@ -381,6 +381,7 @@ def update_charts(year_filter, police_district_filter):
                                 .reset_index()
                                )
         shootings_per_hour_data = (data
+                                   .query("year == @year_filter & dist == @police_district_filter")
                                    .groupby(['hour', 'victim_outcome'])['objectid']
                                    .count()
                                    .reset_index()
