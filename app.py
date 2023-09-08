@@ -252,7 +252,17 @@ def update_charts(year_filter, police_district_filter):
                                )
         
         heatmap_filtered_data = data.loc[:, ['month', 'day', 'shooting_incidents']]
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_numpy = heatmap_data.to_numpy()
+        
+        # Step 1: Create a full 12x31 dataframe
+        heatmap_data = pd.DataFrame(0, index=np.arange(1, 13), columns=np.arange(1, 32))
+        
+        # Step 2: Update values based on actual data
+        heatmap_filtered_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        heatmap_data.update(heatmap_filtered_data, overwrite=True)
+        
+        # Convert to numpy for plotting
         heatmap_numpy = heatmap_data.to_numpy()
         
         choropleth_map_data = data.groupby('dist')['shooting_incidents'].sum().reset_index()
@@ -288,7 +298,17 @@ def update_charts(year_filter, police_district_filter):
                                  .query("dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_numpy = heatmap_data.to_numpy()
+        
+        # Step 1: Create a full 12x31 dataframe
+        heatmap_data = pd.DataFrame(0, index=np.arange(1, 13), columns=np.arange(1, 32))
+        
+        # Step 2: Update values based on actual data
+        heatmap_filtered_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        heatmap_data.update(heatmap_filtered_data, overwrite=True)
+        
+        # Convert to numpy for plotting
         heatmap_numpy = heatmap_data.to_numpy()
         
         
@@ -330,7 +350,17 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_numpy = heatmap_data.to_numpy()
+        
+        # Step 1: Create a full 12x31 dataframe
+        heatmap_data = pd.DataFrame(0, index=np.arange(1, 13), columns=np.arange(1, 32))
+        
+        # Step 2: Update values based on actual data
+        heatmap_filtered_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        heatmap_data.update(heatmap_filtered_data, overwrite=True)
+        
+        # Convert to numpy for plotting
         heatmap_numpy = heatmap_data.to_numpy()
         
         
@@ -372,7 +402,17 @@ def update_charts(year_filter, police_district_filter):
                                  .query("year == @year_filter & dist == @police_district_filter")
                                  .loc[:, ['month', 'day', 'shooting_incidents']]
         )
-        heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        # heatmap_numpy = heatmap_data.to_numpy()
+        
+        # Step 1: Create a full 12x31 dataframe
+        heatmap_data = pd.DataFrame(0, index=np.arange(1, 13), columns=np.arange(1, 32))
+        
+        # Step 2: Update values based on actual data
+        heatmap_filtered_data = heatmap_filtered_data.pivot_table(index='month', columns='day', values='shooting_incidents', aggfunc='sum').fillna(0).astype(int)
+        heatmap_data.update(heatmap_filtered_data, overwrite=True)
+        
+        # Convert to numpy for plotting
         heatmap_numpy = heatmap_data.to_numpy()
         
         choropleth_map_data = (data
@@ -381,7 +421,7 @@ def update_charts(year_filter, police_district_filter):
                                 .reset_index()
                                )
         shootings_per_hour_data = (data
-                                   .query("year == @year_filter & dist == @police_district_filter")
+                                    
                                    .groupby(['hour', 'victim_outcome'])['objectid']
                                    .count()
                                    .reset_index()
@@ -487,7 +527,7 @@ def update_charts(year_filter, police_district_filter):
         ticktext=['Jan. ', 'Feb. ', 'March ', 'April ', 'May ', 'June ',
                 'July ', 'Aug. ', 'Sep. ', 'Oct. ', 'Nov. ', 'Dec. '],
         showgrid=False, zeroline=False, fixedrange=True, showline=False,
-        showdividers=False, showticklabels=True)
+        showdividers=False, showticklabels=True, range=[1, 12])
     heatmap.update_xaxes(
         side='top',
         nticks=30,
@@ -495,7 +535,8 @@ def update_charts(year_filter, police_district_filter):
         ticktext=[i for i in range(1, 32)],
         showgrid=False, zeroline=False, fixedrange=True, showline=False,
         ticks="outside", ticklen=5, tickcolor='#fff',
-        showdividers=False, showticklabels=True)
+        showdividers=False, showticklabels=True,
+        )
     heatmap.update_layout(
         plot_bgcolor="#fff",
         font=dict(color='#999999'),
